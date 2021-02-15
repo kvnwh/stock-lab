@@ -1,6 +1,4 @@
 from robinhood_api import robinhoodapi
-import json
-import urllib.parse
 import decimal
 
 class Bitcoin():

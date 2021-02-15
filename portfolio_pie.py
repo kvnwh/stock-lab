@@ -1,5 +1,4 @@
 from robinhood_api import robinhoodapi
-import json
 import urllib.parse
 import decimal
 import matplotlib.pyplot as plotter
