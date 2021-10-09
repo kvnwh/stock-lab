@@ -82,8 +82,10 @@ def portfolios():
 
 def positions(ignoreNonHolding):
     url = api_url + "/positions/"
-    if ignoreNonHolding:  url += "?nonzero=true"
+    if ignoreNonHolding:
+        url += "?nonzero=true"
     return url
+
 
 def quotes():
     return api_url + "/quotes/"
@@ -142,12 +144,19 @@ def market_data(optionid):
 def convert_token():
     return api_url + "/oauth2/migrate_token/"
 
+
 # get stock information using instrument links
 def market_quotes(instruments):
     return api_url + "/marketdata/quotes/?instruments=" + instruments
+
+
 # get btcusa quote
 def bit_coin_quote():
     return api_url + "/marketdata/forex/quotes/3d961844-d360-45fc-989b-f6fca761d511/"
 
+
 def bit_coin_history(interval, span):
-    return api_url + f"/marketdata/forex/historicals/3d961844-d360-45fc-989b-f6fca761d511/?bounds=24_7&interval={interval}&span={span}"
+    return (
+        api_url
+        + f"/marketdata/forex/historicals/3d961844-d360-45fc-989b-f6fca761d511/?bounds=24_7&interval={interval}&span={span}"
+    )
