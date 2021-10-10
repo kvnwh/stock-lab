@@ -1,17 +1,18 @@
 # Importing required modules
 import numpy as np
 
-from common import calculate_intrinsic_value
-from fin_viz import get_finviz_data, get_discount_rate
-from fcm import get_fcm_data
-from wsj import get_wsj_data
+from .common import calculate_intrinsic_value
+from .fin_viz import get_finviz_data, get_discount_rate
+from .fcm import get_fcm_data
+from .wsj import get_wsj_data
 
+GROWTH_RATE_INFLATOR = 0.75
 
-def evaluate(ticker: str):
+def evaluate(ticker: str, show_plot: bool = False):
     partial_data = get_wsj_data(ticker)
     if partial_data == None:
         print("something wrong with quarterly data, trying anual data")
-        partial_data = get_fcm_data(ticker, False)  # get using fcm api
+        partial_data = get_fcm_data(ticker, False, show_plot)  # get using fcm api
     print(partial_data)
     cash_flow = partial_data["freeCashFlow"]
     total_debt = partial_data["totalDebt"]
@@ -23,9 +24,7 @@ def evaluate(ticker: str):
     discount_rate = get_discount_rate(finviz_data["Beta"])
 
     EPS_growth_5Y = finviz_data["EPS next 5Y"]
-    EPS_growth_6Y_to_10Y = EPS_growth_5Y * (
-        4 / 5
-    )  # Half the previous growth rate, conservative estimate
+    EPS_growth_6Y_to_10Y = EPS_growth_5Y * GROWTH_RATE_INFLATOR  # Half the previous growth rate, conservative estimate
     EPS_growth_11Y_to_20Y = np.minimum(
         EPS_growth_6Y_to_10Y, 4
     )  # Slightly higher than long term inflation rate, conservative estimate
@@ -55,6 +54,7 @@ def evaluate(ticker: str):
         shares_outstanding,
         discount_rate,
         ticker,
+        show_plot,
     )
     current_price = finviz_data["Price"]
     margin_of_safety = (1 - current_price / intrinsic_value) * 100
@@ -63,7 +63,17 @@ def evaluate(ticker: str):
     print("Margin of Safety: ", margin_of_safety)
 
     return {
-        "intrinsicValue": intrinsic_value,
-        "currentPrice": current_price,
-        "marginOfSafety": margin_of_safety,
+        "core": {
+            "intrinsicValue": intrinsic_value,
+            "currentPrice": current_price,
+            "marginOfSafety": margin_of_safety,
+        },
+        "outstandingShares": shares_outstanding,
+        "ePSGrowth5Y": EPS_growth_5Y,
+        "ePSGrowth6To10": EPS_growth_6Y_to_10Y,
+        "ePSGrowth11To20": EPS_growth_11Y_to_20Y,
+        "freeCashFlow": cash_flow,
+        "totalDebt": total_debt,
+        "cashAndSTInvestments": cash_and_ST_investments,
+        "discountRate": discount_rate
     }

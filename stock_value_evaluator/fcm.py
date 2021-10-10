@@ -15,7 +15,7 @@ from urllib.request import urlopen
 
 
 def get_jsonparsed_data(url):
-    print(f'url: {url}')
+    print(f"url: {url}")
     response = urlopen(url)
     data = response.read().decode("utf-8")
     return json.loads(data)
@@ -28,7 +28,7 @@ config.read("env.config")
 apiKey = config["secrets"]["fcm_api_key"]
 
 
-def get_fcm_data(ticker, quarterly=True):
+def get_fcm_data(ticker, quarterly=True, show_plot: bool = False):
     quarterlycashFlow = None
     if quarterly:
         # quarterly not supported in free tier!!!
@@ -77,9 +77,10 @@ def get_fcm_data(ticker, quarterly=True):
     ]  # reverse list to show most recent ones first
     final_cash_flow_statement.iloc[:, 4:].head()
 
-    final_cash_flow_statement[["freeCashFlow"]].iloc[::-1].iloc[-15:].plot(
-        kind="bar", title=ticker + " Cash Flows"
-    )
+    if show_plot:
+        final_cash_flow_statement[["freeCashFlow"]].iloc[::-1].iloc[-15:].plot(
+            kind="bar", title=ticker + " Cash Flows"
+        )
 
     balance_sheet_url = (
         base_url + "balance-sheet-statement/" + ticker + "?apikey=" + apiKey

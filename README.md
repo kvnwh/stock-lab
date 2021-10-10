@@ -28,7 +28,7 @@ run `python3 portfolio_pie.py`
 ### Stock intrinsic value 
 Using some stock intrinsic value model to calculate stock value (-__-!!)
 
-run `python3 stock_value_evaluator/app.py {TICKER}`
+run `python3 stock_evaluator.py {TICKER}`, or using flask `/value/{ticker}` endpoint
 
 
 ### Flask
@@ -36,9 +36,10 @@ run `export FLASK_APP=app` specify which app to run
 
 run `flask run`
 
-go to `http://127.0.0.1:5000/{ticker}` to get yahoo finance data about the ticker
-
-
+host: `http://127.0.0.1:5000`
+endpoints:
+ - `/info/{ticker}`: get yahoo finance data about the ticker
+ - `/value/{ticker}`: get intrinsic value of a stock 
 
 ### Code formatting
 `black .` at root

@@ -12,6 +12,7 @@ def calculate_intrinsic_value(
     shares_outstanding,
     discount_rate,
     ticker,
+    show_plot,
 ):
     _cash_flow = cash_flow
     # Convert all percentages to decmials
@@ -56,6 +57,7 @@ def calculate_intrinsic_value(
         }
     )
     df.index = df.Year
-    df.plot(kind="bar", title=f"Projected Cash Flows of {ticker}")
+    if show_plot:
+        df.plot(kind="bar", title=f"Projected Cash Flows of {ticker}")
 
     return intrinsic_value
