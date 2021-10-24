@@ -1,7 +1,7 @@
 import waitress
 import os
 
-from stock_value_evaluator.api.app import app
+from api.app import app
 from common.db import db
 
 
