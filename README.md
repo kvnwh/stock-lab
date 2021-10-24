@@ -2,7 +2,7 @@
 ```
 python3 -m venv .venv
 source .vent/bin/activate
-python3 -m pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 create `env.conf` with following keys:
 ```
@@ -13,7 +13,7 @@ refresh_token = {get_it_from_robinhood}
 fcm_api_key = {get_it_from_fcm}
 ```
 
-To add new package: `python3 -m pip install <package> && python3 -m pip freeze > requirements.txt`
+To add new package: `pip install <package> && pip freeze > requirements.txt`
 
 #### Bitcoin tracker
 Record bitcoin price in a interval and % change, will export data to csv
@@ -31,15 +31,16 @@ Using some stock intrinsic value model to calculate stock value (-__-!!)
 run `python3 stock_evaluator.py {TICKER}`, or using flask `/value/{ticker}` endpoint
 
 
-### Flask
-run `export FLASK_APP=app` specify which app to run
+### Web server
+run `python3 webapp.py`, host is 3000
 
-run `flask run`
+or run `waitress-serve --port=8080 webapp:app`
+host: `http://127.0.0.1:8080`
 
-host: `http://127.0.0.1:5000`
 endpoints:
- - `/info/{ticker}`: get yahoo finance data about the ticker
- - `/value/{ticker}`: get intrinsic value of a stock 
+ - `/stocks/{ticker}/info`: get yahoo finance data about the ticker
+ - `/stocks/{ticker}/evaluation`: get intrinsic value of a stock 
+ - `/stocks/tracking`: record stock tracking
 
 ### Code formatting
 `black .` at root

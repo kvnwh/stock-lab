@@ -8,6 +8,7 @@ from .wsj import get_wsj_data
 
 GROWTH_RATE_INFLATOR = 0.75
 
+
 def evaluate(ticker: str, show_plot: bool = False):
     partial_data = get_wsj_data(ticker)
     if partial_data == None:
@@ -24,7 +25,9 @@ def evaluate(ticker: str, show_plot: bool = False):
     discount_rate = get_discount_rate(finviz_data["Beta"])
 
     EPS_growth_5Y = finviz_data["EPS next 5Y"]
-    EPS_growth_6Y_to_10Y = EPS_growth_5Y * GROWTH_RATE_INFLATOR  # Half the previous growth rate, conservative estimate
+    EPS_growth_6Y_to_10Y = (
+        EPS_growth_5Y * GROWTH_RATE_INFLATOR
+    )  # Half the previous growth rate, conservative estimate
     EPS_growth_11Y_to_20Y = np.minimum(
         EPS_growth_6Y_to_10Y, 4
     )  # Slightly higher than long term inflation rate, conservative estimate
@@ -75,5 +78,5 @@ def evaluate(ticker: str, show_plot: bool = False):
         "freeCashFlow": cash_flow,
         "totalDebt": total_debt,
         "cashAndSTInvestments": cash_and_ST_investments,
-        "discountRate": discount_rate
+        "discountRate": discount_rate,
     }

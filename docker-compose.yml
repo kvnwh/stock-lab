@@ -1,0 +1,23 @@
+version: '3'
+services:
+  db:
+    image: "postgres" # use latest official postgres version
+    ports:
+      - 50052:5432
+    env_file:
+      - ./database.env # configure postgres
+    volumes:
+      - database-data:/var/lib/postgresql/data/ # persist data even if container shuts down
+      # - ./db-init.sql:/docker-entrypoint-initdb.d/init.sql
+  pgadmin:
+    image: dpage/pgadmin4
+    depends_on: 
+      - db
+    ports:
+      - "53603:53603"
+      - "80:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: root
+volumes:
+  database-data: # named volumes can be managed easier using docker-compose
