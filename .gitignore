@@ -1,6 +1,7 @@
 __pycache__
 .venv
-.vscode
+.vscode/*
+!.vscode/launch.json
 env.config
 data
 .env

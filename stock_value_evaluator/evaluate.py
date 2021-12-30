@@ -1,6 +1,8 @@
 # Importing required modules
 import numpy as np
 
+from common.utils import moneyFormat
+
 from .common import calculate_intrinsic_value
 from .fin_viz import get_finviz_data, get_discount_rate
 from .fcm import get_fcm_data
@@ -75,8 +77,8 @@ def evaluate(ticker: str, show_plot: bool = False):
         "ePSGrowth5Y": EPS_growth_5Y,
         "ePSGrowth6To10": EPS_growth_6Y_to_10Y,
         "ePSGrowth11To20": EPS_growth_11Y_to_20Y,
-        "freeCashFlow": cash_flow,
-        "totalDebt": total_debt,
-        "cashAndSTInvestments": cash_and_ST_investments,
+        "freeCashFlow": moneyFormat(cash_flow),
+        "totalDebt": moneyFormat(total_debt),
+        "cashAndSTInvestments": moneyFormat(cash_and_ST_investments),
         "discountRate": discount_rate,
     }

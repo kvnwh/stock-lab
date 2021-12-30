@@ -32,10 +32,12 @@ run `python3 stock_evaluator.py {TICKER}`, or using flask `/value/{ticker}` endp
 
 
 ### Web server
-run `python3 webapp.py`, host is 3000
+run `python3 webapp.py`, host is 3000. Running this will also migrate the db, it is possible due to the line `db.create_all()`
 
-or run `waitress-serve --port=8080 webapp:app`
-host: `http://127.0.0.1:8080`
+or run `waitress-serve (--port=8080) webapp:app`  host: `http://127.0.0.1:8080`
+
+### Debug web app
+run `Python: Run waitress server` in debug mode
 
 endpoints:
  - `/stocks/{ticker}/info`: get yahoo finance data about the ticker
