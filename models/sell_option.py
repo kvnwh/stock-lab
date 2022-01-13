@@ -12,6 +12,8 @@ class SellOption(Base):
     credit = Column(Float)
     sold_date = Column(DateTime(timezone=True))
     gain = Column(Float)
+    strike = Column(Float)
+    price = Column(Float)
 
     def _asdict(self):
         return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}

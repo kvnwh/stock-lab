@@ -46,3 +46,10 @@ endpoints:
 
 ### Code formatting
 `black .` at root
+
+
+## db migration
+migration done using alembic
+- add model to `alembic/env.py`
+- run `alembic revision --autogenerate  -m 'db_change_message'`
+- run `alembic upgrade {version_hash}`

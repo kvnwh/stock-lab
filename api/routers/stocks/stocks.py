@@ -73,6 +73,8 @@ def add_sold_options():
         expired_date=datetime.strptime(payload["expired_date"], "%Y-%m-%d"),
         sold_date=datetime.strptime(payload["sold_date"], "%Y-%m-%d"),
         credit=payload.get("credit"),
+        strike=payload.get("strike"),
+        price=payload.get("price"),
     )
     if payload.get("gain") is None:
         option.gain = option.credit
@@ -92,11 +94,28 @@ def get_sold_options():
     query = SellOption.query
     if args.get("ticker") is not None:
         query = query.filter(SellOption.ticker == args.get("ticker"))
+    if args.get("from_date") is not None:
+        query = query.filter(SellOption.sold_date >= args.get("from_date"))
+    if args.get("direction") is not None:
+        condition = (
+            SellOption.strike < SellOption.price
+            if args.get("direction") == "PUT"
+            else SellOption.strike > SellOption.price
+        )
+        query = query.filter(condition)
     arr: List[SellOption] = query.all()
     res = []
     credit = 0
     for r in arr:
         credit += r.credit
-        res.append(r._asdict())
+        margin = abs(r.strike - r.price) / r.price
+        res.append(
+            {
+                **r._asdict(),
+                "direction": "PUT" if r.strike < r.price else "CALL",
+                "margin": "{:.2%}".format(margin),
+                "credit_per_percentage_point": r.credit / (margin * 100),
+            }
+        )
     res.sort(key=lambda r: r.get("sold_date"))
     return jsonify({"credit": credit, "options": res}), 200
