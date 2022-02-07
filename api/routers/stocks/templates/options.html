@@ -1,0 +1,47 @@
+<html>
+  <head>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
+    
+    <!-- <link href="{{ url_for('stocks.static', filename='css/stock_options.css') }}" rel="stylesheet"> -->
+    <script src="{{ url_for('stocks.static', filename='js/stock_options.js')}}"></script>
+  </head>
+  <body>
+    <div>
+      <h3>Total <span class="label label-default">{{total}}</span></h3>
+    </div>
+    <table id="optionTable" class="table table-striped">
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Credit</th>
+          <th>Direction</th>
+          <th>Strike</th>
+          <th>Price When Sold</th>
+          <th>Expired Date</th>
+          <th>Sold Date</th>
+          <th>margin</th>
+          <th>credit_per_percentage_point_per_day</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for option in options %}
+          <tr>
+            <td>{{option.ticker}}</td>
+            <td>{{option.credit}}</td>
+            <td>{{option.direction}}</td>
+            <td>{{option.strike}}</td>
+            <td>{{option.price}}</td>
+            <td>{{option.expired_date.strftime('%Y-%m-%d')}}</td>
+            <td>{{option.sold_date.strftime('%Y-%m-%d')}}</td>
+            <td>{{option.margin}}</td>
+            <td>{{option.credit_per_percentage_point_per_day}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </body>
+</html>

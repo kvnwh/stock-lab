@@ -882,6 +882,12 @@ class RobinhoodApi:
 
         return exp_price_list
 
+    def get_option_orders(self):
+        res = self.get_url(endpoints.options_base() + "orders/")
+        orders = res["results"]
+        filled_orders = list(filter(lambda o: (o["state"] == "filled"), orders))
+        return filled_orders
+
     ###########################################################################
     #                           GET FUNDAMENTALS
     ###########################################################################

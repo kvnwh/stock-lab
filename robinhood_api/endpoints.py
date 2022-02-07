@@ -160,3 +160,7 @@ def bit_coin_history(interval, span):
         api_url
         + f"/marketdata/forex/historicals/3d961844-d360-45fc-989b-f6fca761d511/?bounds=24_7&interval={interval}&span={span}"
     )
+
+
+def options_base():
+    return api_url + "/options/"
