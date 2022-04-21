@@ -34,14 +34,11 @@
         <tr>
           <th>Ticker</th>
           <th>Credit</th>
-          <!-- <th>Direction</th> -->
+          <th>Quantity</th>
           <th>Strike</th>
-          <!-- <th>Price When Sold</th> -->
           <th>Expired Date</th>
           <th>Sold Date</th>
           <th>Strategy</th>
-          <!-- <th>margin</th> -->
-          <!-- <th>credit_per_percentage_point_per_day</th> -->
         </tr>
       </thead>
       <tbody>
@@ -49,13 +46,10 @@
           <tr>
             <td>{{option.ticker}}</td>
             <td>{{"+" if option.direction == "credit" else "-"}}{{option.premium}}</td>
-            <!-- <td>{{option.direction}}</td> -->
+            <td>{{option.quantity}}</td>
             <td>{{option.strike}}</td>
-            <!-- <td>{{option.price}}</td> -->
             <td>{{option.expiration_date}}</td>
             <td>{{option.sold_date}}</td>
-            <!-- <td>{{option.margin}}</td> -->
-            <!-- <td>{{option.credit_per_percentage_point_per_day}}</td> -->
             <td>{{option.opening_strategy if option.opening_strategy else option.closing_strategy}}</td>
           </tr>
         {% endfor %}
