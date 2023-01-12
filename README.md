@@ -36,6 +36,8 @@ run `python3 webapp.py`, host is 3000. Running this will also migrate the db, it
 
 or run `waitress-serve (--port=8080) webapp:app`  host: `http://127.0.0.1:8080`
 
+or run `make start`
+
 ### Debug web app
 run `Python: Run waitress server` in debug mode
 
