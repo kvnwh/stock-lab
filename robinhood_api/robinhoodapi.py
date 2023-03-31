@@ -15,6 +15,7 @@ import six
 from six.moves import input
 from six.moves.urllib.parse import unquote
 from six.moves.urllib.request import getproxies
+# from common.logging import logger
 
 from pyrh import exceptions as RH_exception
 from robinhood_api import endpoints
@@ -883,9 +884,16 @@ class RobinhoodApi:
         return exp_price_list
 
     def get_option_orders(self):
-        res = self.get_url(endpoints.options_base() + "orders/")
-        orders = res["results"]
-        filled_orders = list(filter(lambda o: (o["state"] == "filled"), orders))
+        url = endpoints.options_base() + "orders/"
+        filled_orders = []
+        while True:
+            res = self.get_url(url)
+            orders = res["results"]
+            filled_orders.extend(list(filter(lambda o: (o["state"] == "filled"), orders)))
+            if res["next"]:
+                url = res["next"]
+            else:
+                break
         return filled_orders
 
     ###########################################################################
