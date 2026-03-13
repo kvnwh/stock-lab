@@ -1,7 +1,7 @@
 ## Local setup:
 ```
 python3 -m venv .venv
-source .vent/bin/activate
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 create `env.conf` with following keys:
@@ -11,6 +11,12 @@ device_token = {get_it_from_robinhood}
 auth_token = {get_it_from_robinhood}
 refresh_token = {get_it_from_robinhood}
 fcm_api_key = {get_it_from_fcm}
+```
+if not using python 3.9
+```
+deactivate to exit the .venv mode
+python3.9 -m venv .venv
+... (rest are the same)
 ```
 
 To add new package: `pip install <package> && pip freeze > requirements.txt`

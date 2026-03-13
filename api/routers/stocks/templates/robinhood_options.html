@@ -1,59 +1,168 @@
-<html>
+<!doctype html>
+<html lang="en">
   <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Robinhood Options</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
-    
-    <!-- <link href="{{ url_for('stocks.static', filename='css/stock_options.css') }}" rel="stylesheet"> -->
-    <script src="{{ url_for('stocks.static', filename='js/stock_options.js')}}"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css" />
+    <link href="{{ url_for('stocks.static', filename='css/robinhood_options.css') }}" rel="stylesheet" />
+
+    <script defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script defer src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+    <script defer src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
+    <script defer src="{{ url_for('stocks.static', filename='js/stock_options.js')}}"></script>
   </head>
-  <body>
-    <div>
-      <h3>Total <span class="label label-default">{{total}}</span></h3>
-    </div>
-    <table id="profitTable" class="table table-striped">
-      <thead>
-        <tr>
-          <th>Ticker</th>
-          <th>Earnings</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for key, value in earnings.items() %}
-          <tr>
-            <td>{{key}}</td>
-            <td>{{value}}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <table id="optionTable" class="table table-striped">
-      <thead>
-        <tr>
-          <th>Ticker</th>
-          <th>Credit</th>
-          <th>Quantity</th>
-          <th>Strike</th>
-          <th>Expired Date</th>
-          <th>Sold Date</th>
-          <th>Strategy</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for option in options %}
-          <tr>
-            <td>{{option.ticker}}</td>
-            <td>{{"+" if option.direction == "credit" else "-"}}{{option.premium}}</td>
-            <td>{{option.quantity}}</td>
-            <td>{{option.strike}}</td>
-            <td>{{option.expiration_date}}</td>
-            <td>{{option.sold_date}}</td>
-            <td>{{option.opening_strategy if option.opening_strategy else option.closing_strategy}}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <body class="rh-body">
+    <header class="rh-top">
+      <div class="container rh-top-inner">
+        <div class="d-flex flex-wrap align-items-end gap-3">
+          <div class="me-auto">
+            <h1 class="rh-title">Robinhood Options</h1>
+            <p class="rh-subtitle">Quick summary by ticker and a full trade ledger.</p>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <span class="rh-pill"><span class="rh-dot"></span> DataTables enabled</span>
+            <a class="btn btn-sm btn-outline-light" href="/stocks/">Back</a>
+          </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+          <div class="col-12 col-md-4">
+            <div class="rh-card hard rh-metric">
+              <div class="rh-metric-k">Net Premium</div>
+              <div class="rh-metric-v">{{ total }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-4">
+            <div class="rh-card rh-metric">
+              <div class="rh-metric-k">Trades</div>
+              <div class="rh-metric-v">{{ options|length }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-4">
+            <div class="rh-card rh-metric">
+              <div class="rh-metric-k">Tickers</div>
+              <div class="rh-metric-v">{{ earnings|length }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="rh-shell">
+      <div class="container">
+        <h2 class="rh-section-title">Earnings By Ticker</h2>
+        <p class="rh-section-note">Sorted by earnings by default. Use the search box to filter.</p>
+        <div class="rh-card rh-table-wrap">
+          <div class="table-responsive">
+            <table id="profitTable" class="table table-hover rh-table align-middle">
+              <thead>
+                <tr>
+                  <th>Ticker</th>
+                  <th>Earnings</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for key, value in earnings.items() %}
+                  <tr>
+                    <td>
+                      <span class="rh-avatar-row js-ticker" data-ticker="{{ key }}">
+                        <img
+                          class="rh-logo"
+                          alt="{{ key }} logo"
+                          loading="eager"
+                          fetchpriority="low"
+                          decoding="async"
+                          src="https://financialmodelingprep.com/image-stock/{{ key|upper }}.png"
+                          onload="this.parentElement.classList.add('has-logo')"
+                          onerror="this.style.display='none'; this.parentElement.classList.remove('has-logo')"
+                        />
+                        <span class="rh-avatar" title="{{ key }}" aria-label="{{ key }}">{{ key[:4]|upper }}</span>
+                        <span class="rh-ticker-text js-ticker-text">{{ key }}</span>
+                      </span>
+                    </td>
+                    <td class="rh-amt">{{ value }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <h2 class="rh-section-title mt-4">Trade Ledger</h2>
+        <p class="rh-section-note">Credit is styled green, debit red. Default sort is by sold date.</p>
+        <div class="rh-card rh-table-wrap">
+          <div class="table-responsive">
+            <table id="optionTable" class="table table-hover rh-table align-middle">
+              <thead>
+                <tr>
+                  <th>Ticker</th>
+                  <th>Premium</th>
+                  <th>Qty</th>
+                  <th>Strike</th>
+                  <th>Expiry</th>
+                  <th>Sold</th>
+                  <th>Strategy</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for option in options %}
+                  {% set is_credit = option.direction == "credit" %}
+                  <tr>
+                    <td>
+                      <span class="rh-avatar-row js-ticker" data-ticker="{{ option.ticker }}">
+                        <img
+                          class="rh-logo"
+                          alt="{{ option.ticker }} logo"
+                          loading="eager"
+                          fetchpriority="low"
+                          decoding="async"
+                          src="https://financialmodelingprep.com/image-stock/{{ option.ticker|upper }}.png"
+                          onload="this.parentElement.classList.add('has-logo')"
+                          onerror="this.style.display='none'; this.parentElement.classList.remove('has-logo')"
+                        />
+                        <span class="rh-avatar" title="{{ option.ticker }}" aria-label="{{ option.ticker }}">{{ option.ticker[:4]|upper }}</span>
+                        <span class="rh-ticker-text js-ticker-text">{{ option.ticker }}</span>
+                      </span>
+                    </td>
+                    <td>
+                      <span class="rh-amt {{ 'credit' if is_credit else 'debit' }}">
+                        {{ "+" if is_credit else "-" }}{{ option.premium }}
+                      </span>
+                    </td>
+                    <td class="rh-amt">{{ option.quantity }}</td>
+                    <td class="rh-amt">{{ option.strike }}</td>
+                    <td class="rh-amt" data-order="{{ option.expiration_date }}">
+                      <time class="js-localize-date" datetime="{{ option.expiration_date }}" title="{{ option.expiration_date }}">
+                        {{ option.expiration_date }}
+                      </time>
+                    </td>
+                    <td class="rh-amt" data-order="{{ option.sold_date }}">
+                      <time class="js-localize-datetime" datetime="{{ option.sold_date }}" title="{{ option.sold_date }}">
+                        {{ option.sold_date }}
+                      </time>
+                    </td>
+                    <td>
+                      {% set strategy = option.opening_strategy if option.opening_strategy else option.closing_strategy %}
+                      {% if strategy %}
+                        <span class="rh-tag">{{ strategy }}</span>
+                      {% else %}
+                        <span class="text-muted">-</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
   </body>
 </html>
