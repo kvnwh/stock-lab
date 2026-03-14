@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Opportunities</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css" />
+    <link href="{{ url_for('stocks.static', filename='css/robinhood_options.css') }}" rel="stylesheet" />
+    <link href="{{ url_for('stocks.static', filename='css/opportunities.css') }}" rel="stylesheet" />
+
+    <script defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script defer src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+    <script defer src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
+    <script defer src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <script defer src="{{ url_for('stocks.static', filename='js/opportunities.js')}}"></script>
+  </head>
+  <body class="rh-body">
+    <header class="rh-top">
+      <div class="container rh-top-inner">
+        <div class="d-flex flex-wrap align-items-end gap-3">
+          <div class="me-auto">
+            <h1 class="rh-title">Opportunities</h1>
+            <p class="rh-subtitle">Scan Robinhood watchlists for cash-secured put candidates.</p>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-sm btn-outline-light" href="/stocks/options">Orders</a>
+            <a class="btn btn-sm btn-outline-light" href="/stocks/">Back</a>
+          </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+          <div class="col-12 col-lg-8">
+            <div class="rh-card hard rh-metric opp-controls">
+              <div class="row g-2 align-items-end">
+                <div class="col-12 col-md-5">
+                  <label class="form-label text-muted mb-1">Watchlist</label>
+                  <select id="watchlistSelect" class="form-select form-select-sm"></select>
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label text-muted mb-1">Target DTE</label>
+                  <input id="dteInput" class="form-control form-control-sm" type="number" min="7" max="90" value="30" />
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label text-muted mb-1">Max Tickers</label>
+                  <input id="maxTickersInput" class="form-control form-control-sm" type="number" min="5" max="200" value="40" />
+                </div>
+                <div class="col-12 col-md-1 d-grid">
+                  <button id="runBtn" class="btn btn-sm btn-primary">Run</button>
+                </div>
+              </div>
+              <div class="small text-muted mt-2">
+                Score favors higher annualized yield, a bit more cushion to strike, and tighter spreads. This is heuristic.
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-2">
+            <div class="rh-card rh-metric">
+              <div class="rh-metric-k">Candidates</div>
+              <div class="rh-metric-v" id="candCount">-</div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-2">
+            <div class="rh-card rh-metric">
+              <div class="rh-metric-k">Watchlist</div>
+              <div class="rh-metric-v" id="wlName">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="rh-shell">
+      <div class="container">
+        <h2 class="rh-section-title">Map</h2>
+        <p class="rh-section-note">Annualized yield vs distance to strike. Bubble size is premium; color is score.</p>
+        <div class="rh-card hard opp-plot">
+          <div id="plot" style="height: 440px;"></div>
+        </div>
+
+        <h2 class="rh-section-title mt-4">Top Candidates</h2>
+        <div class="rh-card rh-table-wrap">
+          <div class="table-responsive">
+            <table id="oppTable" class="table table-hover rh-table align-middle">
+              <thead>
+                <tr>
+                  <th>Ticker</th>
+                  <th>Score</th>
+                  <th>Underlying</th>
+                  <th>Strike</th>
+                  <th>Premium</th>
+                  <th>DTE</th>
+                  <th>Expiry</th>
+                  <th>Ann Yield</th>
+                  <th>Dist To Strike</th>
+                  <th>Spread</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
+

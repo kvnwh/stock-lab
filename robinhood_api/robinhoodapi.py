@@ -20,6 +20,7 @@ from six.moves.urllib.request import getproxies
 from pyrh import exceptions as RH_exception
 from robinhood_api import endpoints
 import configparser
+from common.logging import logger
 
 
 class Bounds(Enum):
@@ -131,12 +132,15 @@ class RobinhoodApi:
             "scope": "internal",
             "expires_in": 86400,
         }
-        res = self.session.post(url, data=data)
-        res = res.json()
-        self.auth_token = res["access_token"]
-        self.refresh_token = res["refresh_token"]
-        self.mfa_code = res["mfa_code"]
-        self.scope = res["scope"]
+        res = self.session.post(url, data=data, timeout=15)
+        res.raise_for_status()
+        payload = res.json()
+        self.auth_token = payload["access_token"]
+        self.refresh_token = payload["refresh_token"]
+        # Keep headers in sync for subsequent calls.
+        self.headers["Authorization"] = "Bearer " + self.auth_token
+        self.session.headers = self.headers
+        return payload
 
     def login(self, username, password, challenge_type="email", qr_code=None):
         """Save and test login info for Robinhood accounts
@@ -756,12 +760,113 @@ class RobinhoodApi:
 
         return res["results"][0]
 
-    def get_url(self, url):
+    def get_url(self, url, params=None):
         """
         Flat wrapper for fetching URL directly
         """
 
-        return self.session.get(url, timeout=15).json()
+        return self._get_json(url, params=params)
+
+    def _request(self, method, url, **kwargs):
+        """
+        Request wrapper with:
+        - raise_for_status
+        - refresh-token retry on 401
+        """
+        logger.info(f"robinhood request: {method} {url}")
+        resp = self.session.request(method, url, timeout=15, **kwargs)
+        if resp.status_code == 401 and self.refresh_token:
+            try:
+                logger.warning(f"robinhood 401, attempting refresh then retry: {method} {url}")
+                self.relogin_oauth2()
+                resp = self.session.request(method, url, timeout=15, **kwargs)
+            except Exception:
+                pass
+        logger.info(f"robinhood response: {method} {url} -> {resp.status_code}")
+        return resp
+
+    def _get_json(self, url, params=None):
+        resp = self._request("GET", url, params=params)
+        resp.raise_for_status()
+        return resp.json()
+
+    def _paginate(self, url):
+        """Yield items from Robinhood endpoints that return {results, next}."""
+        while url:
+            res = self._get_json(url)
+            for item in res.get("results", []):
+                yield item
+            url = res.get("next")
+
+    def get_watchlists(self):
+        """Return watchlists as a list of dicts (name, url, etc.)."""
+        wls = list(self._paginate(endpoints.watchlists()))
+        logger.info(f"robinhood watchlists: count={len(wls)}")
+        return wls
+
+    def get_watchlist_by_name(self, name):
+        for wl in self.get_watchlists():
+            if wl.get("name") == name:
+                return wl
+        return None
+
+    def get_watchlist_symbols(self, name=None):
+        """
+        Return a list of ticker symbols from the given watchlist name.
+        If name is None, uses the first watchlist returned by the API.
+        """
+        watchlists = self.get_watchlists()
+        if not watchlists:
+            logger.warning("robinhood watchlists: empty list")
+            return []
+
+        wl = watchlists[0] if name is None else self.get_watchlist_by_name(name)
+        if not wl:
+            logger.warning(f"robinhood watchlist not found: name={name!r}")
+            return []
+
+        wl_url = wl.get("url")
+        console.log(wl_url)
+        if not wl_url:
+            logger.warning(f"robinhood watchlist missing url: name={wl.get('name')!r}")
+            return []
+
+        logger.info(f"robinhood watchlist symbols: name={wl.get('name')!r} url={wl_url}")
+        instruments = []
+        res = self._get_json(wl_url)
+        # Some responses include pagination for "results" items.
+        if "results" in res:
+            instruments.extend(res.get("results", []))
+            next_url = res.get("next")
+            while next_url:
+                page = self._get_json(next_url)
+                instruments.extend(page.get("results", []))
+                next_url = page.get("next")
+        elif "results" not in res and "instruments" in res:
+            instruments = res.get("instruments", [])
+
+        symbols = []
+        for item in instruments:
+            instrument_url = item.get("instrument") if isinstance(item, dict) else None
+            if not instrument_url:
+                continue
+            try:
+                sym = self._get_json(instrument_url).get("symbol")
+            except Exception:
+                sym = None
+            if sym:
+                symbols.append(sym)
+
+        # Preserve order, drop duplicates.
+        seen = set()
+        out = []
+        for s in symbols:
+            s = str(s).upper()
+            if s in seen:
+                continue
+            seen.add(s)
+            out.append(s)
+        return out
 
     def get_popularity(self, stock=""):
         """Get the number of robinhood users who own the given stock
@@ -833,7 +938,7 @@ class RobinhoodApi:
         """
         market_data = {}
         try:
-            market_data = self.get_url(endpoints.option_market_data(optionid)) or {}
+            market_data = self.get_url(endpoints.market_data(optionid)) or {}
         except requests.exceptions.HTTPError:
             raise RH_exception.InvalidOptionId()
         return market_data
@@ -843,11 +948,36 @@ class RobinhoodApi:
         options = options["results"]
         return options
 
-    def get_option_marketdata(self, instrument):
-        info = self.get_url(
-            endpoints.market_data() + "options/?instruments=" + instrument
-        )
-        return info["results"][0]
+    def get_option_marketdata(self, instruments):
+        """
+        Fetch option marketdata for one or more option instrument URLs.
+
+        Args:
+            instruments: str instrument URL or list[str] instrument URLs
+
+        Returns:
+            dict for single input, or list[dict] for list input
+        """
+        if isinstance(instruments, list):
+            instruments_str = ",".join(instruments)
+        else:
+            instruments_str = instruments
+        url = endpoints.api_url + "/marketdata/options/?instruments=" + instruments_str
+        info = self.get_url(url) or {}
+        results = info.get("results") or []
+        return results if isinstance(instruments, list) else (results[0] if results else {})
+
+    def get_option_marketdata_map(self, instruments):
+        """
+        Fetch marketdata and return a mapping of instrument_url -> marketdata dict.
+        """
+        results = self.get_option_marketdata(instruments if isinstance(instruments, list) else [instruments])
+        out = {}
+        for r in results or []:
+            inst = r.get("instrument")
+            if inst:
+                out[inst] = r
+        return out
 
     def get_option_chainid(self, symbol):
         stock_info = self.get_url(self.endpoints["instruments"] + "?symbol=" + symbol)

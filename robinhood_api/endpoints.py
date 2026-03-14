@@ -106,6 +106,9 @@ def user():
 def watchlists():
     return api_url + "/watchlists/"
 
+def watchlist(wlName):
+    return api_url + "/discovery/lists/{_wlName}"
+
 
 def news(stock):
     return api_url + "/midlands/news/{_stock}/".format(_stock=stock)

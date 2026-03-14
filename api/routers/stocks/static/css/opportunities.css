@@ -1,0 +1,19 @@
+.opp-controls .form-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.opp-plot {
+  padding: 10px 12px 6px;
+}
+
+.btn-primary {
+  background: var(--rh-accent);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.btn-primary:hover {
+  background: #2048d4;
+}
+
